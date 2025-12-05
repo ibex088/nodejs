@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calcom-config
+  namespace: calcom
+data:
+  NODE_ENV: "production"
+  API_PORT: "80"
+  LOG_LEVEL: "info"
+  API_KEY_PREFIX: "cal_"
+  
+  # URLs - update with your domain
+  NEXT_PUBLIC_WEBAPP_URL: "https://app.yourdomain.com"
+  NEXT_PUBLIC_API_V2_URL: "https://api.yourdomain.com"
+  
+  # Feature flags
+  IS_E2E: "false"
