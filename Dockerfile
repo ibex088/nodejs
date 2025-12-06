@@ -5,6 +5,9 @@ WORKDIR /app
 ARG PORT
 ARG DATABASE_URL
 
+ENV PORT=$PORT \
+    DATABASE_URL=$DATABASE_URL
+
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
