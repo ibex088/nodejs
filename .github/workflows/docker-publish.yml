@@ -79,33 +79,50 @@ jobs:
 
           echo "Using Docker network: $NETWORK_NAME"
 
-          docker run -d --rm \
+          # Run container with Docker health check - no arbitrary timeouts
+          docker run -d \
             --name nodejs-api-test \
             --network $NETWORK_NAME \
             -p 3000:3000 \
             -e NODE_ENV=production \
             -e DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${POSTGRES_PORT}/${POSTGRES_DB} \
             -e REDIS_URL=redis://redis:${REDIS_PORT} \
+            --health-cmd="curl -sf http://localhost:3000/ || exit 1" \
+            --health-interval=5s \
+            --health-timeout=3s \
+            --health-retries=60 \
+            --health-start-period=10s \
             chauhansomay/nodejs-api:ci-${{ github.sha }}
 
-          echo "Waiting for API container to become ready..."
-          for i in {1..30}; do
-            if curl -sf http://localhost:3000/ > /dev/null 2>&1; then
-              echo "API is ready ✅"
+          echo "Waiting for API container to become healthy..."
+          while true; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' nodejs-api-test 2>/dev/null || echo "unknown")
+            echo "API health: $status"
+            
+            if [ "$status" = "healthy" ]; then
+              echo "API is healthy ✅"
               break
             fi
-            echo "Attempt $i/30: API not ready yet, waiting..."
-            if [ $i -eq 30 ]; then
-              echo "Health check failed after 30 attempts ❌, showing logs:"
+            
+            if [ "$status" = "unhealthy" ]; then
+              echo "API became unhealthy ❌, showing logs:"
               docker logs nodejs-api-test || true
               docker stop nodejs-api-test || true
               docker compose logs database redis || true
               exit 1
             fi
-            sleep 2
+            
+            # Check if container exited unexpectedly
+            if ! docker ps -q -f name=nodejs-api-test | grep -q .; then
+              echo "API container exited unexpectedly ❌"
+              docker logs nodejs-api-test || true
+              exit 1
+            fi
+            
+            sleep 3
           done
 
-          echo "Health check passed ✅"
+          echo "Smoke test passed ✅"
           docker stop nodejs-api-test
 
       - name: Build and push multi-arch image to Docker Hub
