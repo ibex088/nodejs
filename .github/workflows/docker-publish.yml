@@ -87,7 +87,7 @@ jobs:
             -e NODE_ENV=production \
             -e DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:${POSTGRES_PORT}/${POSTGRES_DB} \
             -e REDIS_URL=redis://redis:${REDIS_PORT} \
-            --health-cmd="curl -sf http://localhost:3000/ || exit 1" \
+            --health-cmd="curl -sf http://localhost:3000/health || exit 1" \
             --health-interval=5s \
             --health-timeout=3s \
             --health-retries=60 \

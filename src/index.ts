@@ -10,6 +10,15 @@ const app = express()
 
 app.use(express.json())
 
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() })
+  } catch (error) {
+    res.status(503).json({ status: 'unhealthy', error: 'Database connection failed' })
+  }
+})
+
 app.post(`/signup`, async (req, res) => {
   const { name, email, posts } = req.body
 
