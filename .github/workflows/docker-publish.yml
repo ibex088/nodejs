@@ -130,7 +130,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           tags: chauhansomay/nodejs-api:latest
           cache-from: type=gha
 
