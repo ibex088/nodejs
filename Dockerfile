@@ -31,6 +31,7 @@ RUN yarn install --frozen-lockfile --production && yarn cache clean
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
+COPY prisma.config.js ./
 
 RUN chown -R nodejs:nodejs /app
 
