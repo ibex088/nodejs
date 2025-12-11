@@ -18,19 +18,19 @@ jobs:
       API_PORT: 3000
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Authenticate with Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
+      - name: Configure Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Start database and redis
+      - name: Start PostgreSQL and Redis services
         run: |
           docker compose up -d database redis
 
@@ -53,7 +53,7 @@ jobs:
           echo "Waiting a bit for redis..."
           sleep 5
 
-      - name: Build Docker image (no push)
+      - name: Build API image for testing
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -65,7 +65,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run API container for smoke test
+      - name: Run smoke test against API container
         run: |
           # Dynamically detect the Docker Compose network
           NETWORK_NAME=$(docker network ls --filter "name=app-network" --format "{{.Name}}" | head -n 1)
@@ -124,7 +124,7 @@ jobs:
           echo "Smoke test passed ✅"
           docker stop nodejs-api-test
 
-      - name: Push image to Docker Hub
+      - name: Build and push multi-arch image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -134,7 +134,7 @@ jobs:
           tags: chauhansomay/nodejs-api:latest
           cache-from: type=gha
 
-      - name: Docker compose down
+      - name: Cleanup containers
         if: always()
         run: |
           docker compose down

@@ -10,6 +10,50 @@ const app = express()
 
 app.use(express.json())
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Node.js API', version: '1.0.0' })
+})
+
+app.get('/instance-info', async (req, res) => {
+  const os = await import('os')
+  res.json({
+    hostname: os.hostname(),
+    platform: os.platform(),
+    arch: os.arch(),
+    cpus: os.cpus().length,
+    totalMemory: `${Math.round(os.totalmem() / 1024 / 1024)}MB`,
+    freeMemory: `${Math.round(os.freemem() / 1024 / 1024)}MB`,
+    uptime: `${Math.round(os.uptime())}s`,
+    networkInterfaces: Object.entries(os.networkInterfaces())
+      .flatMap(([name, interfaces]) => 
+        interfaces?.filter(i => i.family === 'IPv4').map(i => ({ name, address: i.address })) || []
+      ),
+    podName: process.env.HOSTNAME || 'unknown',
+  })
+})
+
+app.get('/cpu-stress', async (req, res) => {
+  const duration = Number(req.query.duration) || 5 // seconds
+  const startTime = Date.now()
+  
+  // CPU-intensive calculation
+  while (Date.now() - startTime < duration * 1000) {
+    // Fibonacci calculation to burn CPU
+    let a = 0, b = 1
+    for (let i = 0; i < 10000000; i++) {
+      const temp = a + b
+      a = b
+      b = temp
+    }
+  }
+  
+  res.json({
+    message: `CPU stress completed`,
+    duration: `${duration}s`,
+    podName: process.env.HOSTNAME || 'unknown',
+  })
+})
+
 app.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`
