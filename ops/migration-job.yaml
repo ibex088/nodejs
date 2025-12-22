@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: prisma-migrate
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: chauhansomay/nodejs-api:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Running prisma migrate..."
+              npx prisma db push || echo "Migration failed"
+              echo "Sleeping for debugging..."
+              sleep 3600
+          envFrom:
+            - configMapRef:
+                name: nodejs-config
+            - secretRef:
+                name: nodejs-secrets
+      restartPolicy: Never

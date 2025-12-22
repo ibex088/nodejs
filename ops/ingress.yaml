@@ -1,21 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: calcom-api
-  namespace: calcom
+  name: nodejs-api
+  # namespace: calcom
   annotations:
-    # Use AWS ALB Ingress Controller
-    kubernetes.io/ingress.class: alb
-    
-    # ALB Configuration
+    # ALB Configuration - EKS Auto Mode auto-discovers subnets
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     
-    # Subnets - REPLACE with output from: terraform output public_subnet_ids
-    alb.ingress.kubernetes.io/subnets: subnet-xxxxx,subnet-yyyyy
-    
     # Health check
-    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
@@ -29,9 +23,10 @@ metadata:
     # alb.ingress.kubernetes.io/ssl-redirect: "443"
     
     # Tags for the ALB
-    alb.ingress.kubernetes.io/tags: Environment=production,App=calcom
+    alb.ingress.kubernetes.io/tags: Environment=production,App=nodejs-api
 
 spec:
+  ingressClassName: alb
   rules:
     - http:
         paths:
@@ -39,6 +34,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: calcom-api
+                name: nodejs-api-service
                 port:
                   number: 80

@@ -87,26 +87,26 @@ kubectl get ingress -n calcom
 kubectl get ingress -n calcom -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'
 
 # Check logs
-kubectl logs -n calcom -l app=calcom-api --tail=100
+kubectl logs -n calcom -l app=nodejs-api --tail=100
 ```
 
 ## Useful Commands
 
 ```bash
 # Scale manually
-kubectl scale deployment calcom-api -n calcom --replicas=5
+kubectl scale deployment nodejs-api -n calcom --replicas=5
 
 # Restart deployment (rolling update)
-kubectl rollout restart deployment calcom-api -n calcom
+kubectl rollout restart deployment nodejs-api -n calcom
 
 # Check rollout status
-kubectl rollout status deployment calcom-api -n calcom
+kubectl rollout status deployment nodejs-api -n calcom
 
 # Rollback
-kubectl rollout undo deployment calcom-api -n calcom
+kubectl rollout undo deployment nodejs-api -n calcom
 
 # Port forward for local testing
-kubectl port-forward -n calcom svc/calcom-api 8080:80
+kubectl port-forward -n calcom svc/nodejs-api 8080:80
 ```
 
 ## Architecture

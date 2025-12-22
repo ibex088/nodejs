@@ -2,6 +2,43 @@ provider "aws" {
   region = var.aws_region
 }
 
+provider "kubernetes" {
+  host                   = aws_eks_cluster.main.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.main.certificate_authority[0].data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.main.name]
+  }
+}
+
+provider "helm" {
+  registry_config_path   = null
+  repository_config_path = null
+  repository_cache       = null
+
+  kubernetes = {
+    host                   = aws_eks_cluster.main.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.main.certificate_authority[0].data)
+
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        aws_eks_cluster.main.name,
+        "--region",
+        var.aws_region
+      ]
+    }
+  }
+}
+
+
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -36,8 +73,8 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                           = "${var.project_name}-public-${local.azs[count.index]}"
-    "kubernetes.io/role/elb"                       = "1"
+    Name                                            = "${var.project_name}-public-${local.azs[count.index]}"
+    "kubernetes.io/role/elb"                        = "1"
     "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
   }
 }
@@ -50,8 +87,8 @@ resource "aws_subnet" "private" {
   availability_zone = local.azs[count.index]
 
   tags = {
-    Name                                           = "${var.project_name}-private-${local.azs[count.index]}"
-    "kubernetes.io/role/internal-elb"              = "1"
+    Name                                            = "${var.project_name}-private-${local.azs[count.index]}"
+    "kubernetes.io/role/internal-elb"               = "1"
     "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
   }
 }

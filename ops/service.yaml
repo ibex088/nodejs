@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: calcom-api
-  namespace: calcom
+  name: nodejs-api-service
+  # namespace: calcom
   labels:
-    app: calcom-api
+    app: nodejs-api
 spec:
   type: ClusterIP
   selector:
-    app: calcom-api
+    app: nodejs-api
   ports:
     - name: http
       port: 80
-      targetPort: 80
+      targetPort: 3000
       protocol: TCP

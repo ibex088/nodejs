@@ -21,8 +21,8 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.eks_nodes.id]
-    description     = "PostgreSQL from EKS nodes only"
+    security_groups = [aws_eks_cluster.main.vpc_config[0].cluster_security_group_id]
+    description     = "PostgreSQL from EKS cluster SG"
   }
 
   egress {
@@ -35,6 +35,7 @@ resource "aws_security_group" "rds" {
   tags = {
     Name = "${var.project_name}-rds-sg"
   }
+  depends_on = [aws_eks_cluster.main]
 }
 
 resource "aws_db_instance" "main" {
@@ -59,13 +60,13 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids = [aws_security_group.rds.id]
   publicly_accessible    = false
 
-  backup_retention_period = 7
+  backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "Mon:04:00-Mon:05:00"
 
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.project_name}-postgres-final-snapshot"
-  deletion_protection       = true
+  deletion_protection       = false
 
   tags = {
     Name = "${var.project_name}-postgres"
